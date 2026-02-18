@@ -100,7 +100,8 @@ struct MainView : View {
                     }
                     
                     Button(action: {
-                        self.scanPassport()
+                        print("TODO")
+//                        self.scanPassport()
                     }) {
                         Text("Scan Passport")
                             .font(.largeTitle)
@@ -207,107 +208,126 @@ extension MainView {
         }
     }
 
-    func scanPassport( ) {
-        lastPassportScanTime = Date.now
-
-        hideKeyboard()
-        self.showDetails = false
-        
-        // Key difference: Prepare parameters based on selected authentication type
-        let mrzKeyParam: String?
-        let canParam: String?
-        
-        if selectedPasswordType == .mrz {
-            let df = DateFormatter()
-            df.timeZone = TimeZone(secondsFromGMT: 0)
-            df.dateFormat = "YYMMdd"
-            
-            let pptNr = settings.passportNumber
-            let dob = df.string(from:settings.dateOfBirth)
-            let doe = df.string(from:settings.dateOfExpiry)
-            
-            let passportUtils = PassportUtils()
-            mrzKeyParam = passportUtils.getMRZKey(passportNumber: pptNr, dateOfBirth: dob, dateOfExpiry: doe)
-            canParam = nil
-        } else {
-            mrzKeyParam = nil
-            canParam = canNumber
-        }
-
-        // Set the masterListURL on the Passport Reader to allow auto passport verification
-        let masterListURL = Bundle.main.url(forResource: "masterList", withExtension: ".pem")!
-        passportReader.setMasterListURL( masterListURL )
-        
-        // Set whether to use the new Passive Authentication verification method (default true) or the old OpenSSL CMS verifiction
-        passportReader.passiveAuthenticationUsesOpenSSL = !settings.useNewVerificationMethod
-        
-        // If we want to read only specific data groups we can using:
-//        let dataGroups : [DataGroupId] = [.COM, .SOD, .DG1, .DG2, .DG7, .DG11, .DG12, .DG14, .DG15]
-//        passportReader.readPassport(mrzKey: mrzKey, tags:dataGroups, completed: { (passport, error) in
-        
-        appLogging.error( "Using version \(UIApplication.version)" )
-        
-        Task {
-                let customMessageHandler: (NFCViewDisplayMessage)->String? = { (displayMessage) in
-                    switch displayMessage {
-                        case .requestPresentPassport:
-                            return selectedPasswordType == .mrz ?
-                                "Hold your iPhone near an NFC enabled passport." :
-                                "Hold your iPhone near the document and enter the CAN."
-                        default:
-                            // Return nil for all other messages so we use the provided default
-                            return nil
-                    }
-                }
-                
-                do {
-                    let passport: NFCPassportModel
-                    
-                    if selectedPasswordType == .mrz {
-                        // Use the original API for MRZ to demonstrate backward compatibility
-                        passport = try await passportReader.readPassport(
-                            mrzKey: mrzKeyParam,
-                            useExtendedMode: settings.useExtendedMode,
-                            customDisplayMessage: customMessageHandler
-                        )
-                    } else {
-                        // Use the new API for CAN
-                        passport = try await passportReader.readPassport(
-                            mrzKey: nil,
-                            can: canParam,
-                            useExtendedMode: settings.useExtendedMode,
-                            customDisplayMessage: customMessageHandler
-                        )
-                    }
-                    
-                
-                if let _ = passport.faceImageInfo {
-                    print( "Got face Image details")
-                }
-                
-                if settings.savePassportOnScan {
-                    // Save passport
-                    let dict = passport.dumpPassportData(selectedDataGroups: DataGroupId.allCases, includeActiveAuthenticationData: true)
-                    if let data = try? JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted) {
-                        
-                        let savedPath = FileManager.cachesFolder.appendingPathComponent("\(passport.documentNumber).json")
-                        
-                        try? data.write(to: savedPath, options: .completeFileProtection)
-                    }
-                }
-                
-                DispatchQueue.main.async {
-                    self.settings.passport = passport
-                    self.showDetails = true
-                }
-            } catch {
-                self.alertTitle = "Oops"
-                self.alertMessage = error.localizedDescription
-                self.showingAlert = true
-
-            }
-        }
-    }
+//    func scanPassport( ) {
+//        lastPassportScanTime = Date.now
+//
+//        hideKeyboard()
+//        self.showDetails = false
+//        
+//        // Key difference: Prepare parameters based on selected authentication type
+//        let mrzKeyParam: String?
+//        let canParam: String?
+//        
+//<<<<<<< HEAD
+//        if selectedPasswordType == .mrz {
+//            let df = DateFormatter()
+//            df.timeZone = TimeZone(secondsFromGMT: 0)
+//            df.dateFormat = "YYMMdd"
+//            
+//            let pptNr = settings.passportNumber
+//            let dob = df.string(from:settings.dateOfBirth)
+//            let doe = df.string(from:settings.dateOfExpiry)
+//            
+//            let passportUtils = PassportUtils()
+//            mrzKeyParam = passportUtils.getMRZKey(passportNumber: pptNr, dateOfBirth: dob, dateOfExpiry: doe)
+//            canParam = nil
+//        } else {
+//            mrzKeyParam = nil
+//            canParam = canNumber
+//        }
+//=======
+//        let pptNr = settings.passportNumber
+//        let dob = df.string(from:settings.dateOfBirth)
+//        let doe = df.string(from:settings.dateOfExpiry)
+//        let useExtendedMode = settings.useExtendedMode
+//        let skipPACE = settings.skipPACE
+//        let skipCA = settings.skipCA
+//
+//        let passportUtils = PassportUtils()
+//        let mrzKey = passportUtils.getMRZKey( passportNumber: pptNr, dateOfBirth: dob, dateOfExpiry: doe)
+//>>>>>>> upstream/main
+//
+//        // Set the masterListURL on the Passport Reader to allow auto passport verification
+//        let masterListURL = Bundle.main.url(forResource: "masterList", withExtension: ".pem")!
+//        passportReader.setMasterListURL( masterListURL )
+//        
+//        // Set whether to use the new Passive Authentication verification method (default true) or the old OpenSSL CMS verifiction
+//        passportReader.passiveAuthenticationUsesOpenSSL = !settings.useNewVerificationMethod
+//        
+//        // If we want to read only specific data groups we can using:
+////        let dataGroups : [DataGroupId] = [.COM, .SOD, .DG1, .DG2, .DG7, .DG11, .DG12, .DG14, .DG15]
+////        passportReader.readPassport(mrzKey: mrzKey, tags:dataGroups, completed: { (passport, error) in
+//        
+//        appLogging.error( "Using version \(UIApplication.version)" )
+//        
+//        Task {
+//                let customMessageHandler: (NFCViewDisplayMessage)->String? = { (displayMessage) in
+//                    switch displayMessage {
+//                        case .requestPresentPassport:
+//                            return selectedPasswordType == .mrz ?
+//                                "Hold your iPhone near an NFC enabled passport." :
+//                                "Hold your iPhone near the document and enter the CAN."
+//                        default:
+//                            // Return nil for all other messages so we use the provided default
+//                            return nil
+//                    }
+//                }
+//<<<<<<< HEAD
+//                
+//                do {
+//                    let passport: NFCPassportModel
+//                    
+//                    if selectedPasswordType == .mrz {
+//                        // Use the original API for MRZ to demonstrate backward compatibility
+//                        passport = try await passportReader.readPassport(
+//                            mrzKey: mrzKeyParam,
+//                            useExtendedMode: settings.useExtendedMode,
+//                            customDisplayMessage: customMessageHandler
+//                        )
+//                    } else {
+//                        // Use the new API for CAN
+//                        passport = try await passportReader.readPassport(
+//                            mrzKey: nil,
+//                            can: canParam,
+//                            useExtendedMode: settings.useExtendedMode,
+//                            customDisplayMessage: customMessageHandler
+//                        )
+//                    }
+//                    
+//=======
+//            }
+//            
+//            do {
+//                let passport = try await passportReader.readPassport( mrzKey: mrzKey, skipCA: skipCA, skipPACE: skipPACE, useExtendedMode: useExtendedMode, customDisplayMessage:customMessageHandler)
+//>>>>>>> upstream/main
+//                
+//                if let _ = passport.faceImageInfo {
+//                    print( "Got face Image details")
+//                }
+//                
+//                if settings.savePassportOnScan {
+//                    // Save passport
+//                    let dict = passport.dumpPassportData(selectedDataGroups: DataGroupId.allCases, includeActiveAuthenticationData: true)
+//                    if let data = try? JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted) {
+//                        
+//                        let savedPath = FileManager.cachesFolder.appendingPathComponent("\(passport.documentNumber).json")
+//                        
+//                        try? data.write(to: savedPath, options: .completeFileProtection)
+//                    }
+//                }
+//                
+//                DispatchQueue.main.async {
+//                    self.settings.passport = passport
+//                    self.showDetails = true
+//                }
+//            } catch {
+//                self.alertTitle = "Oops"
+//                self.alertMessage = error.localizedDescription
+//                self.showingAlert = true
+//
+//            }
+//        }
+//    }
 }
 
 //MARK: PreviewProvider
